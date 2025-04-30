@@ -1,13 +1,23 @@
 import { db } from "./db";
+import { eq } from "drizzle-orm";
 import * as bcrypt from "bcryptjs";
 import {
   users,
   wallets,
   transactions,
+  transfers,
   dpsPlans,
+  dpsAccounts,
   fdrPlans,
+  fdrAccounts,
   loanTypes,
+  loanApplications,
+  loans,
   billTypes,
+  billPayments,
+  supportTickets,
+  supportMessages,
+  notifications,
   languages,
   siteSettings
 } from "@shared/schema";
@@ -16,17 +26,37 @@ export async function seedDatabase() {
   console.log("Seeding database...");
   
   try {
-    // Check if we have any users already
-    const existingUsers = await db.select().from(users);
+    // Check if we have any admin users already
+    const existingUsers = await db.select().from(users).where(eq(users.username, "skycent"));
     
     if (existingUsers.length > 0) {
-      console.log("Database already seeded, skipping...");
+      console.log("Admin user already exists, skipping full seed...");
       return;
     }
     
+    // Clear all tables data
+    await db.delete(languages);
+    await db.delete(siteSettings);
+    await db.delete(transactions);
+    await db.delete(transfers);
+    await db.delete(wallets);
+    await db.delete(dpsPlans);
+    await db.delete(dpsAccounts);
+    await db.delete(fdrPlans);
+    await db.delete(fdrAccounts);
+    await db.delete(loanTypes);
+    await db.delete(loanApplications);
+    await db.delete(loans);
+    await db.delete(billTypes);
+    await db.delete(billPayments);
+    await db.delete(supportTickets);
+    await db.delete(supportMessages);
+    await db.delete(notifications);
+    await db.delete(users);
+    
     // Create admin users
     const adminPassword = await bcrypt.hash("admin123", 10);
-    const skyAdminPassword = await bcrypt.hash("skycent", 10);
+    const skyAdminPassword = await bcrypt.hash("sky123", 10); // Fixed password
     const userPassword = await bcrypt.hash("user123", 10);
     
     // Create system admin user
@@ -47,7 +77,7 @@ export async function seedDatabase() {
     
     // Create admin user with provided credentials
     const [skyAdmin] = await db.insert(users).values({
-      username: "sky123",
+      username: "skycent", // Fixed username
       password: skyAdminPassword,
       email: "sky@citibank.com",
       fullName: "Sky Admin",
