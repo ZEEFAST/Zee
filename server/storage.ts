@@ -17,7 +17,9 @@ import {
   notifications, type Notification, type InsertNotification,
   siteSettings, type SiteSetting, type InsertSiteSetting,
   languages, type Language, type InsertLanguage,
-  translations, type Translation, type InsertTranslation
+  translations, type Translation, type InsertTranslation,
+  cryptocurrencies, type Cryptocurrency, type InsertCryptocurrency,
+  cryptoHoldings, type CryptoHolding, type InsertCryptoHolding
 } from "@shared/schema";
 
 // Storage interface for all CRUD operations
@@ -134,6 +136,19 @@ export interface IStorage {
   getTranslationsByLanguage(languageId: number): Promise<Translation[]>;
   createTranslation(translation: InsertTranslation): Promise<Translation>;
   updateTranslation(id: number, value: string): Promise<Translation | undefined>;
+  
+  // Cryptocurrency operations
+  getAllCryptocurrencies(): Promise<Cryptocurrency[]>;
+  getCryptocurrency(id: number): Promise<Cryptocurrency | undefined>;
+  getCryptocurrencyBySymbol(symbol: string): Promise<Cryptocurrency | undefined>;
+  createCryptocurrency(crypto: InsertCryptocurrency): Promise<Cryptocurrency>;
+  updateCryptocurrency(id: number, data: Partial<Cryptocurrency>): Promise<Cryptocurrency | undefined>;
+  
+  // Crypto Holdings operations
+  getUserCryptoHoldings(userId: number): Promise<CryptoHolding[]>;
+  getCryptoHolding(id: number): Promise<CryptoHolding | undefined>;
+  createCryptoHolding(holding: InsertCryptoHolding): Promise<CryptoHolding>;
+  updateCryptoHolding(id: number, data: Partial<CryptoHolding>): Promise<CryptoHolding | undefined>;
 }
 
 export class MemStorage implements IStorage {
@@ -157,6 +172,8 @@ export class MemStorage implements IStorage {
   private siteSettingsData: Map<number, SiteSetting>;
   private languagesData: Map<number, Language>;
   private translationsData: Map<number, Translation>;
+  private cryptocurrenciesData: Map<number, Cryptocurrency>;
+  private cryptoHoldingsData: Map<number, CryptoHolding>;
   
   // Current ID trackers
   private currentIds: {
@@ -201,6 +218,8 @@ export class MemStorage implements IStorage {
     this.siteSettingsData = new Map<number, SiteSetting>();
     this.languagesData = new Map<number, Language>();
     this.translationsData = new Map<number, Translation>();
+    this.cryptocurrenciesData = new Map<number, Cryptocurrency>();
+    this.cryptoHoldingsData = new Map<number, CryptoHolding>();
     
     this.currentIds = {
       userId: 1,
@@ -221,7 +240,9 @@ export class MemStorage implements IStorage {
       notificationId: 1,
       siteSettingId: 1,
       languageId: 1,
-      translationId: 1
+      translationId: 1,
+      cryptocurrencyId: 1,
+      cryptoHoldingId: 1
     };
 
     // Initialize with demo data
