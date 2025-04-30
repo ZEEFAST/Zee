@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -158,7 +158,7 @@ export default function AdminSettings() {
   });
 
   // Update form defaults when settings are loaded
-  React.useEffect(() => {
+  useEffect(() => {
     if (settings) {
       if (settings.general) {
         generalForm.reset(settings.general);
@@ -173,7 +173,7 @@ export default function AdminSettings() {
         securityForm.reset(settings.security);
       }
     }
-  }, [settings]);
+  }, [settings, generalForm, appearanceForm, notificationForm, securityForm]);
 
   // Handle form submissions
   const onGeneralSubmit = (data: z.infer<typeof generalSettingsSchema>) => {

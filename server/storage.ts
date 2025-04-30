@@ -455,7 +455,7 @@ export class MemStorage implements IStorage {
     // Create site settings
     this.createSiteSetting({
       key: "site_name",
-      value: "NexusBank",
+      value: "CITI BANK LTD",
       group: "general",
     });
 

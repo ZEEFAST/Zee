@@ -780,6 +780,53 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Admin settings routes
+  app.get("/api/admin/settings", isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const allSettings = await storage.getAllSettings();
+      
+      // Group settings by their category
+      const groupedSettings = allSettings.reduce((acc, setting) => {
+        const group = setting.group || 'general';
+        
+        if (!acc[group]) {
+          acc[group] = {};
+        }
+        
+        acc[group][setting.key] = setting.value;
+        return acc;
+      }, {});
+      
+      return res.status(200).json(groupedSettings);
+    } catch (error) {
+      console.error("Get admin settings error:", error);
+      return res.status(500).json({ message: "Error fetching settings" });
+    }
+  });
+
+  app.patch("/api/admin/settings", isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const updates = req.body;
+      const results = [];
+      
+      // Process each category of settings
+      for (const [category, settings] of Object.entries(updates)) {
+        for (const [key, value] of Object.entries(settings)) {
+          const fullKey = `${category}_${key}`;
+          const updated = await storage.updateSetting(fullKey, String(value));
+          if (updated) {
+            results.push(updated);
+          }
+        }
+      }
+      
+      return res.status(200).json({ message: "Settings updated", updated: results.length });
+    } catch (error) {
+      console.error("Update admin settings error:", error);
+      return res.status(500).json({ message: "Error updating settings" });
+    }
+  });
+
   // Create HTTP server
   const httpServer = createServer(app);
 
