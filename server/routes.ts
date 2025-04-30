@@ -66,48 +66,67 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Authentication Routes
   app.post("/api/auth/login", async (req, res) => {
+    console.log("Login attempt:", req.body);
     const { username, password } = req.body;
 
     if (!username || !password) {
+      console.log("Missing username or password");
       return res.status(400).json({ message: "Username and password are required" });
     }
 
-    const user = await storage.getUserByUsername(username);
-    if (!user) {
-      return res.status(401).json({ message: "Invalid username or password" });
+    let user;
+    try {
+      user = await storage.getUserByUsername(username);
+      console.log("User found:", user ? "Yes" : "No", "Username:", username);
+      
+      if (!user) {
+        return res.status(401).json({ message: "Invalid username or password" });
+      }
+      
+      // Check if password is bcrypt hashed
+      if (user.password.startsWith('$2')) {
+        const bcrypt = require('bcryptjs');
+        const passwordMatch = await bcrypt.compare(password, user.password);
+        console.log("Using bcrypt check. Password match:", passwordMatch);
+        if (!passwordMatch) {
+          return res.status(401).json({ message: "Invalid username or password" });
+        }
+      } else {
+        // For backward compatibility with non-hashed passwords
+        console.log("Using direct comparison. Password match:", user.password === password);
+        if (user.password !== password) {
+          return res.status(401).json({ message: "Invalid username or password" });
+        }
+      }
+    } catch (error) {
+      console.log("Login error:", error);
+      return res.status(500).json({ message: "Internal server error" });
     }
+
+    try {
+      // Update last login time
+      await storage.updateUser(user.id, { lastLogin: new Date() });
     
-    // Check if password is bcrypt hashed
-    if (user.password.startsWith('$2')) {
-      const bcrypt = require('bcryptjs');
-      const passwordMatch = await bcrypt.compare(password, user.password);
-      if (!passwordMatch) {
-        return res.status(401).json({ message: "Invalid username or password" });
-      }
-    } else {
-      // For backward compatibility with non-hashed passwords
-      if (user.password !== password) {
-        return res.status(401).json({ message: "Invalid username or password" });
-      }
+      // Set user session
+      req.session.userId = user.id;
+      req.session.userRole = user.role;
+  
+      return res.status(200).json({
+        id: user.id,
+        username: user.username,
+        email: user.email,
+        fullName: user.fullName,
+        role: user.role,
+        language: user.language,
+        isRtl: user.isRtl,
+        isDarkMode: user.isDarkMode,
+      });
+    } catch (error) {
+      console.log("Error updating last login time:", error);
+      return res.status(500).json({ message: "Internal server error" });
     }
 
-    // Update last login time
-    await storage.updateUser(user.id, { lastLogin: new Date() });
-
-    // Set user session
-    req.session.userId = user.id;
-    req.session.userRole = user.role;
-
-    return res.status(200).json({
-      id: user.id,
-      username: user.username,
-      email: user.email,
-      fullName: user.fullName,
-      role: user.role,
-      language: user.language,
-      isRtl: user.isRtl,
-      isDarkMode: user.isDarkMode,
-    });
+    // This section is already handled in the try/catch block above
   });
 
   app.post("/api/auth/logout", (req, res) => {
