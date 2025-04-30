@@ -15,8 +15,14 @@ import Layout from "@/components/layout/layout";
 import { useAuth } from "@/hooks/use-auth";
 import { useEffect } from "react";
 
+// Import admin pages
+import AdminDashboard from "@/pages/admin/dashboard";
+import AdminUsers from "@/pages/admin/users";
+import AdminKycManagement from "@/pages/admin/kyc-management";
+import AdminSettings from "@/pages/admin/settings";
+
 function Router() {
-  const { isAuthenticated, checkAuth } = useAuth();
+  const { isAuthenticated, checkAuth, user } = useAuth();
   const [location, setLocation] = useLocation();
 
   useEffect(() => {

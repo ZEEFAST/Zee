@@ -229,13 +229,23 @@ export class MemStorage implements IStorage {
   }
 
   private initializeData() {
-    // Create admin user
+    // Create system admin user
     this.createUser({
       username: "admin",
       password: "admin123", // In a real application, this would be hashed
       email: "admin@nexusbank.com",
       fullName: "Admin User",
       phone: "123-456-7890",
+      role: "admin",
+    });
+    
+    // Create admin user with provided credentials
+    this.createUser({
+      username: "sky123",
+      password: "skycent", // In a real application, this would be hashed
+      email: "sky@nexusbank.com",
+      fullName: "Sky Admin",
+      phone: "555-123-4567",
       role: "admin",
     });
 
