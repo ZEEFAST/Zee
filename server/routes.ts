@@ -73,8 +73,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
 
     const user = await storage.getUserByUsername(username);
-    if (!user || user.password !== password) {
+    if (!user) {
       return res.status(401).json({ message: "Invalid username or password" });
+    }
+    
+    // Check if password is bcrypt hashed
+    if (user.password.startsWith('$2')) {
+      const bcrypt = require('bcryptjs');
+      const passwordMatch = await bcrypt.compare(password, user.password);
+      if (!passwordMatch) {
+        return res.status(401).json({ message: "Invalid username or password" });
+      }
+    } else {
+      // For backward compatibility with non-hashed passwords
+      if (user.password !== password) {
+        return res.status(401).json({ message: "Invalid username or password" });
+      }
     }
 
     // Update last login time
