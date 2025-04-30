@@ -19,7 +19,9 @@ import {
   supportMessages,
   notifications,
   languages,
-  siteSettings
+  siteSettings,
+  cryptocurrencies,
+  cryptoHoldings
 } from "@shared/schema";
 
 export async function seedDatabase() {
@@ -52,6 +54,8 @@ export async function seedDatabase() {
     await db.delete(supportTickets);
     await db.delete(supportMessages);
     await db.delete(notifications);
+    await db.delete(cryptoHoldings);
+    await db.delete(cryptocurrencies);
     await db.delete(users);
     
     // Create admin users
@@ -321,6 +325,74 @@ export async function seedDatabase() {
       value: "false",
       group: "system",
       updatedAt: new Date(),
+    });
+
+    // Create cryptocurrencies
+    const [bitcoin] = await db.insert(cryptocurrencies).values({
+      symbol: "BTC",
+      name: "Bitcoin",
+      currentPrice: 61452.89,
+      priceChangePercent24h: 2.35,
+      marketCap: 1205632450000,
+      image: "https://assets.coingecko.com/coins/images/1/large/bitcoin.png",
+      isActive: true,
+    }).returning();
+
+    const [ethereum] = await db.insert(cryptocurrencies).values({
+      symbol: "ETH",
+      name: "Ethereum",
+      currentPrice: 3012.76,
+      priceChangePercent24h: 1.82,
+      marketCap: 362543210000,
+      image: "https://assets.coingecko.com/coins/images/279/large/ethereum.png",
+      isActive: true,
+    }).returning();
+
+    const [solana] = await db.insert(cryptocurrencies).values({
+      symbol: "SOL",
+      name: "Solana",
+      currentPrice: 124.58,
+      priceChangePercent24h: 3.46,
+      marketCap: 54568900000,
+      image: "https://assets.coingecko.com/coins/images/4128/large/solana.png",
+      isActive: true,
+    }).returning();
+
+    const [cardano] = await db.insert(cryptocurrencies).values({
+      symbol: "ADA",
+      name: "Cardano",
+      currentPrice: 0.45,
+      priceChangePercent24h: -0.88,
+      marketCap: 15879630000,
+      image: "https://assets.coingecko.com/coins/images/975/large/cardano.png",
+      isActive: true,
+    }).returning();
+
+    const [xrp] = await db.insert(cryptocurrencies).values({
+      symbol: "XRP",
+      name: "XRP",
+      currentPrice: 0.52,
+      priceChangePercent24h: -1.24,
+      marketCap: 28456720000,
+      image: "https://assets.coingecko.com/coins/images/44/large/xrp-symbol-white-128.png",
+      isActive: true,
+    }).returning();
+
+    // Create user crypto holdings
+    await db.insert(cryptoHoldings).values({
+      userId: regularUser.id,
+      walletId: cryptoWallet.id,
+      cryptocurrencyId: bitcoin.id,
+      amount: 0.25,
+      purchasePrice: 28400.00,
+    });
+
+    await db.insert(cryptoHoldings).values({
+      userId: regularUser.id,
+      walletId: cryptoWallet.id,
+      cryptocurrencyId: ethereum.id,
+      amount: 2.5,
+      purchasePrice: 2850.00,
     });
     
     console.log("Database seeded successfully!");
