@@ -92,6 +92,43 @@ function Router() {
             )}
           </Route>
           
+          {/* Admin routes */}
+          {user?.role === "admin" && (
+            <>
+              <Route path="/admin">
+                {() => (
+                  <Layout>
+                    <AdminDashboard />
+                  </Layout>
+                )}
+              </Route>
+              
+              <Route path="/admin/users">
+                {() => (
+                  <Layout>
+                    <AdminUsers />
+                  </Layout>
+                )}
+              </Route>
+              
+              <Route path="/admin/kyc-management">
+                {() => (
+                  <Layout>
+                    <AdminKycManagement />
+                  </Layout>
+                )}
+              </Route>
+              
+              <Route path="/admin/settings">
+                {() => (
+                  <Layout>
+                    <AdminSettings />
+                  </Layout>
+                )}
+              </Route>
+            </>
+          )}
+          
           {/* Additional routes will be added as their components are developed */}
         </>
       )}
