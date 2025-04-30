@@ -18,6 +18,8 @@ import {
   siteSettings, type SiteSetting, type InsertSiteSetting,
   languages, type Language, type InsertLanguage,
   translations, type Translation, type InsertTranslation,
+  cryptocurrencies, type Cryptocurrency, type InsertCryptocurrency,
+  cryptoHoldings, type CryptoHolding, type InsertCryptoHolding
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, and, desc, sql, like } from "drizzle-orm";
@@ -693,5 +695,81 @@ export class DatabaseStorage implements IStorage {
       .returning();
     
     return translation;
+  }
+
+  // Cryptocurrency operations
+  async getAllCryptocurrencies(): Promise<Cryptocurrency[]> {
+    return db.select().from(cryptocurrencies).orderBy(cryptocurrencies.name);
+  }
+
+  async getCryptocurrency(id: number): Promise<Cryptocurrency | undefined> {
+    const [crypto] = await db.select().from(cryptocurrencies).where(eq(cryptocurrencies.id, id));
+    return crypto;
+  }
+
+  async getCryptocurrencyBySymbol(symbol: string): Promise<Cryptocurrency | undefined> {
+    const [crypto] = await db.select().from(cryptocurrencies)
+      .where(eq(cryptocurrencies.symbol, symbol));
+    return crypto;
+  }
+
+  async createCryptocurrency(cryptoData: InsertCryptocurrency): Promise<Cryptocurrency> {
+    const now = new Date();
+    const [crypto] = await db.insert(cryptocurrencies).values({
+      ...cryptoData,
+      lastUpdated: now
+    }).returning();
+    
+    return crypto;
+  }
+
+  async updateCryptocurrency(id: number, data: Partial<Cryptocurrency>): Promise<Cryptocurrency | undefined> {
+    const now = new Date();
+    const [crypto] = await db.update(cryptocurrencies)
+      .set({
+        ...data,
+        lastUpdated: now
+      })
+      .where(eq(cryptocurrencies.id, id))
+      .returning();
+    
+    return crypto;
+  }
+  
+  // Crypto Holdings operations
+  async getUserCryptoHoldings(userId: number): Promise<CryptoHolding[]> {
+    return db.select()
+      .from(cryptoHoldings)
+      .where(eq(cryptoHoldings.userId, userId))
+      .orderBy(desc(cryptoHoldings.createdAt));
+  }
+
+  async getCryptoHolding(id: number): Promise<CryptoHolding | undefined> {
+    const [holding] = await db.select().from(cryptoHoldings).where(eq(cryptoHoldings.id, id));
+    return holding;
+  }
+
+  async createCryptoHolding(holdingData: InsertCryptoHolding): Promise<CryptoHolding> {
+    const now = new Date();
+    const [holding] = await db.insert(cryptoHoldings).values({
+      ...holdingData,
+      createdAt: now,
+      updatedAt: now
+    }).returning();
+    
+    return holding;
+  }
+
+  async updateCryptoHolding(id: number, data: Partial<CryptoHolding>): Promise<CryptoHolding | undefined> {
+    const now = new Date();
+    const [holding] = await db.update(cryptoHoldings)
+      .set({
+        ...data,
+        updatedAt: now
+      })
+      .where(eq(cryptoHoldings.id, id))
+      .returning();
+    
+    return holding;
   }
 }
