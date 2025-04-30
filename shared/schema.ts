@@ -264,6 +264,31 @@ export const translations = pgTable("translations", {
   value: text("value").notNull(),
 });
 
+// Cryptocurrencies
+export const cryptocurrencies = pgTable("cryptocurrencies", {
+  id: serial("id").primaryKey(),
+  symbol: text("symbol").notNull().unique(),
+  name: text("name").notNull(),
+  currentPrice: doublePrecision("current_price").notNull(),
+  priceChangePercent24h: doublePrecision("price_change_percent_24h"),
+  marketCap: doublePrecision("market_cap"),
+  image: text("image"),
+  lastUpdated: timestamp("last_updated").defaultNow().notNull(),
+  isActive: boolean("is_active").default(true).notNull(),
+});
+
+// Crypto Wallets - specific cryptocurrency holdings for users
+export const cryptoHoldings = pgTable("crypto_holdings", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id),
+  walletId: integer("wallet_id").notNull().references(() => wallets.id),
+  cryptocurrencyId: integer("cryptocurrency_id").notNull().references(() => cryptocurrencies.id),
+  amount: doublePrecision("amount").default(0).notNull(),
+  purchasePrice: doublePrecision("purchase_price").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at"),
+});
+
 // Create insert schemas
 export const insertUserSchema = createInsertSchema(users).omit({ id: true, createdAt: true, lastLogin: true });
 export const insertWalletSchema = createInsertSchema(wallets).omit({ id: true, createdAt: true });
@@ -284,6 +309,8 @@ export const insertNotificationSchema = createInsertSchema(notifications).omit({
 export const insertSiteSettingSchema = createInsertSchema(siteSettings).omit({ id: true, updatedAt: true });
 export const insertLanguageSchema = createInsertSchema(languages).omit({ id: true });
 export const insertTranslationSchema = createInsertSchema(translations).omit({ id: true });
+export const insertCryptocurrencySchema = createInsertSchema(cryptocurrencies).omit({ id: true, lastUpdated: true });
+export const insertCryptoHoldingSchema = createInsertSchema(cryptoHoldings).omit({ id: true, createdAt: true, updatedAt: true });
 
 // Define types for inserts
 export type InsertUser = z.infer<typeof insertUserSchema>;
@@ -305,6 +332,8 @@ export type InsertNotification = z.infer<typeof insertNotificationSchema>;
 export type InsertSiteSetting = z.infer<typeof insertSiteSettingSchema>;
 export type InsertLanguage = z.infer<typeof insertLanguageSchema>;
 export type InsertTranslation = z.infer<typeof insertTranslationSchema>;
+export type InsertCryptocurrency = z.infer<typeof insertCryptocurrencySchema>;
+export type InsertCryptoHolding = z.infer<typeof insertCryptoHoldingSchema>;
 
 // Define types for select
 export type User = typeof users.$inferSelect;
@@ -326,3 +355,5 @@ export type Notification = typeof notifications.$inferSelect;
 export type SiteSetting = typeof siteSettings.$inferSelect;
 export type Language = typeof languages.$inferSelect;
 export type Translation = typeof translations.$inferSelect;
+export type Cryptocurrency = typeof cryptocurrencies.$inferSelect;
+export type CryptoHolding = typeof cryptoHoldings.$inferSelect;
